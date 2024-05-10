@@ -206,5 +206,20 @@ namespace ItemLibrary
             LocaleIdentifier localeIdentifier = new LocaleIdentifier(cultureInfo);
             return GetCreateLocale(localeIdentifier);
         }
+
+        /// <summary>
+        /// Gets translation string from the current language dictionary given a key, may return null if translation doesn't exist.
+        /// </summary>
+        /// <param name="key">Where do you want to get the localized string from</param>
+        /// <returns>Translation from given key</returns>
+        public static string? GetLocalizedString(string key)
+        {
+            if (LocalizationHandler.CurrentLanguageDictionary != null && LocalizationHandler.CurrentLanguageDictionary.TryGetValue(key.ToString(), out string result))
+            {
+                return result;
+            }
+
+            return null;
+        }
     }
 }
