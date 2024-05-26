@@ -6,11 +6,17 @@ using UnityEngine.Localization.Settings;
 
 namespace ItemLibrary
 {
+    
     public static class LocalizationHandler
     {
         public static Dictionary<Locale, Dictionary<string, string>> LanguageDictionaries = [];
         public static Dictionary<string, string>? CurrentLanguageDictionary;
 
+        /*
+         * Some if not all of the following overloads don't call their string counterparts and instead run their own versions of the same code.
+         * There is no good reason for this and should be fixed.
+         */
+        
         #region Enum Overload
 
         /// <summary>
@@ -33,7 +39,7 @@ namespace ItemLibrary
         /// Adds multiple translations for the specified keys.
         /// </summary>
         /// <param name="locale">Locale to add the key and translation to.</param>
-        /// <param name="dictionary">LocalizationKeys.Keys KeyValuePair to add to the Locale</param>
+        /// <param name="dictionary">LocalizationKeys.Keys key translation pair to add to the Locale</param>
         public static void AddKeyTranslationsForLocale(Locale locale,
             Dictionary<LocalizationKeys.Keys, string> dictionary)
         {
@@ -62,7 +68,7 @@ namespace ItemLibrary
         /// <param name="locale">Locale to add the key to if it doesn't exist and replace translation from.</param>
         /// <param name="key">LocalizationKey to use as the key for the translation.</param>
         /// <param name="translation">The translation you can get from the key.</param>
-        public static void SetTranslationForLocale(Locale locale, LocalizationKeys.Keys key, string translation)
+        public static void SetKeyTranslationForLocale(Locale locale, LocalizationKeys.Keys key, string translation)
         {
             if (!LanguageDictionaries.ContainsKey(locale))
             {
@@ -76,10 +82,24 @@ namespace ItemLibrary
         }
 
         /// <summary>
-        /// Replaces every translation in the given locale for the dictionary.
+        /// Replaces translations in the given locale for the ones in the dictionary. Does not replace the entire locale dictionary for the one provided.
+        /// </summary>
+        /// <param name="locale">Locale to add or replace to.</param>
+        /// <param name="dictionary">LocalizationKeys.Keys key translation pair that will replace their counterparts in the Locale</param>
+        public static void SetKeyTranslationsForLocale(Locale locale,  
+            Dictionary<LocalizationKeys.Keys, string> dictionary)
+        {
+            foreach (KeyValuePair<LocalizationKeys.Keys, string> kvp in dictionary)
+            {
+                SetKeyTranslationForLocale(locale, kvp.Key, kvp.Value);
+            }
+        }
+
+        /// <summary>
+        /// Replaces the locale's dictionary for the one provided.
         /// </summary>
         /// <param name="locale">Locale to add or replace the dictionary.</param>
-        /// <param name="dictionary">LocalizationKeys.Keys KeyValuePair that will replace the current one in the Locale</param>
+        /// <param name="dictionary">LocalizationKeys.Keys key translation pair that will replace Locale's entire dictionary</param>
         public static void SetKeyTranslationsDictionaryForLocale(Locale locale,
             Dictionary<LocalizationKeys.Keys, string> dictionary)
         {
@@ -96,6 +116,16 @@ namespace ItemLibrary
             }
 
             LanguageDictionaries[locale] = dictionary2;
+        }
+
+        /// <summary>
+        /// Gets translation string from the current language dictionary given a key, may return null if translation doesn't exist.
+        /// </summary>
+        /// <param name="key">Where do you want to get the localized string from</param>
+        /// <returns>Translation from given key</returns>
+        public static string? GetLocalizedString(LocalizationKeys.Keys key)
+        {
+            return GetLocalizedString(key.ToString());
         }
 
         #endregion
@@ -122,7 +152,7 @@ namespace ItemLibrary
         /// Adds multiple translations for the specified keys.
         /// </summary>
         /// <param name="locale">Locale to add the key and translation to.</param>
-        /// <param name="dictionary">string KeyValuePair to add to the Locale</param>
+        /// <param name="dictionary">string key translation pair to add to the Locale</param>
         public static void AddKeyTranslationsForLocale(Locale locale,
             Dictionary<string, string> dictionary)
         {
@@ -145,13 +175,13 @@ namespace ItemLibrary
         /// <param name="locale">Locale to add the key to if it doesn't exist and replace translation from.</param>
         /// <param name="key">string to use as the key for the translation.</param>
         /// <param name="translation">The translation you can get from the key.</param>
-        public static void SetTranslationForLocale(Locale locale, string key, string translation)
+        public static void SetKeyTranslationForLocale(Locale locale, string key, string translation)
         {
             if (!LanguageDictionaries.ContainsKey(locale))
             {
                 LanguageDictionaries.Add(locale, []);
             }
-
+            
             if (!LanguageDictionaries[locale].TryAdd(key, translation))
             {
                 LanguageDictionaries[locale][key] = translation;
@@ -159,10 +189,24 @@ namespace ItemLibrary
         }
 
         /// <summary>
-        /// Replaces every translation in the given locale for the dictionary.
+        /// Replaces translations in the given locale for the ones in the dictionary. Does not replace the entire locale dictionary for the one provided.
+        /// </summary>
+        /// <param name="locale">Locale to add or replace to.</param>
+        /// <param name="dictionary">string key translation pair that will replace their counterparts in the Locale</param>
+        public static void SetKeyTranslationsForLocale(Locale locale,
+            Dictionary<string, string> dictionary)
+        {
+            foreach (KeyValuePair<string, string> kvp in dictionary)
+            {
+                SetKeyTranslationForLocale(locale, kvp.Key, kvp.Value);
+            }
+        }
+
+        /// <summary>
+        /// Replaces translations in the given locale for the ones in the dictionary. Does not replace the entire locale dictionary for the one provided.
         /// </summary>
         /// <param name="locale">Locale to add or replace the dictionary.</param>
-        /// <param name="dictionary">string KeyValuePair that will replace the current one in the Locale</param>
+        /// <param name="dictionary">string key translation pair that will replace the current one in the Locale</param>
         public static void SetKeyTranslationsDictionaryForLocale(Locale locale,
             Dictionary<string, string> dictionary)
         {
@@ -173,6 +217,21 @@ namespace ItemLibrary
             }
 
             LanguageDictionaries[locale] = dictionary;
+        }
+
+        /// <summary>
+        /// Gets translation string from the current language dictionary given a key, may return null if translation doesn't exist.
+        /// </summary>
+        /// <param name="key">Where do you want to get the localized string from</param>
+        /// <returns>Translation from given key</returns>
+        public static string? GetLocalizedString(string key)
+        {
+            if (LocalizationHandler.CurrentLanguageDictionary != null && LocalizationHandler.CurrentLanguageDictionary.TryGetValue(key.ToString(), out string result))
+            {
+                return result;
+            }
+
+            return null;
         }
 
         #endregion
@@ -205,21 +264,6 @@ namespace ItemLibrary
         {
             LocaleIdentifier localeIdentifier = new LocaleIdentifier(cultureInfo);
             return GetCreateLocale(localeIdentifier);
-        }
-
-        /// <summary>
-        /// Gets translation string from the current language dictionary given a key, may return null if translation doesn't exist.
-        /// </summary>
-        /// <param name="key">Where do you want to get the localized string from</param>
-        /// <returns>Translation from given key</returns>
-        public static string? GetLocalizedString(string key)
-        {
-            if (LocalizationHandler.CurrentLanguageDictionary != null && LocalizationHandler.CurrentLanguageDictionary.TryGetValue(key.ToString(), out string result))
-            {
-                return result;
-            }
-
-            return null;
         }
     }
 }
