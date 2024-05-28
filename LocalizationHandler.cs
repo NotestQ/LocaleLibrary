@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine.Localization;
@@ -63,6 +64,31 @@ namespace ItemLibrary
         }
 
         /// <summary>
+        /// Adds a translation for all available locales.
+        /// </summary>
+        /// <param name="key">LocalizationKey to use as the key for the translation.</param>
+        /// <param name="translation">The translation you can get from the key.</param>
+        public static void AddKeyTranslationForAllLocales(LocalizationKeys.Keys key, string translation)
+        {
+            foreach (Locale locale in LocalizationSettings.AvailableLocales.Locales)
+            {
+                AddKeyTranslationForLocale(locale, key, translation);
+            }
+        }
+
+        /// <summary>
+        /// Adds multiple translations for the specified keys to all available locales.
+        /// </summary>
+        /// <param name="dictionary">LocalizationKeys.Keys key translation pair to add to all available locale</param>
+        public static void AddKeyTranslationsForAllLocales(Dictionary<LocalizationKeys.Keys, string> dictionary)
+        {
+            foreach (Locale locale in LocalizationSettings.AvailableLocales.Locales)
+            {
+                AddKeyTranslationsForLocale(locale, dictionary);
+            }
+        }
+
+        /// <summary>
         /// Replaces a translation for specified locale.
         /// </summary>
         /// <param name="locale">Locale to add the key to if it doesn't exist and replace translation from.</param>
@@ -92,6 +118,31 @@ namespace ItemLibrary
             foreach (KeyValuePair<LocalizationKeys.Keys, string> kvp in dictionary)
             {
                 SetKeyTranslationForLocale(locale, kvp.Key, kvp.Value);
+            }
+        }
+
+        /// <summary>
+        /// Replaces a translation for all available locale.
+        /// </summary>
+        /// <param name="key">LocalizationKey to use as the key for the translation.</param>
+        /// <param name="translation">The translation you can get from the key.</param>
+        public static void SetKeyTranslationForAllLocales(LocalizationKeys.Keys key, string translation)
+        {
+            foreach (Locale locale in LocalizationSettings.AvailableLocales.Locales)
+            {
+                SetKeyTranslationForLocale(locale, key, translation);
+            }
+        }
+
+        /// <summary>
+        /// Replaces translations in all available locales for the ones in the dictionary. Does not replace the entire locale dictionary for the one provided.
+        /// </summary>
+        /// <param name="dictionary">LocalizationKeys.Keys key translation pair that will replace their counterparts in all available locales</param>
+        public static void SetKeyTranslationsForAllLocales(Dictionary<LocalizationKeys.Keys, string> dictionary)
+        {
+            foreach (Locale locale in LocalizationSettings.AvailableLocales.Locales)
+            {
+                SetKeyTranslationsForLocale(locale, dictionary);
             }
         }
 
@@ -170,6 +221,31 @@ namespace ItemLibrary
         }
 
         /// <summary>
+        /// Adds a translation for all available locales.
+        /// </summary>
+        /// <param name="key">string to use as the key for the translation.</param>
+        /// <param name="translation">The translation you can get from the key.</param>
+        public static void AddKeyTranslationForAllLocales(string key, string translation)
+        {
+            foreach (Locale locale in LocalizationSettings.AvailableLocales.Locales)
+            {
+                AddKeyTranslationForLocale(locale, key, translation);
+            }
+        }
+
+        /// <summary>
+        /// Adds multiple translations for the specified keys to all available locales.
+        /// </summary>
+        /// <param name="dictionary">string key translation pair to add to all available locale</param>
+        public static void AddKeyTranslationsForAllLocales(Dictionary<string, string> dictionary)
+        {
+            foreach (Locale locale in LocalizationSettings.AvailableLocales.Locales)
+            {
+                AddKeyTranslationsForLocale(locale, dictionary);
+            }
+        }
+
+        /// <summary>
         /// Replaces a translation for specified locale.
         /// </summary>
         /// <param name="locale">Locale to add the key to if it doesn't exist and replace translation from.</param>
@@ -199,6 +275,31 @@ namespace ItemLibrary
             foreach (KeyValuePair<string, string> kvp in dictionary)
             {
                 SetKeyTranslationForLocale(locale, kvp.Key, kvp.Value);
+            }
+        }
+
+        /// <summary>
+        /// Replaces a translation for all available locale.
+        /// </summary>
+        /// <param name="key">string to use as the key for the translation.</param>
+        /// <param name="translation">The translation you can get from the key.</param>
+        public static void SetKeyTranslationForAllLocales(string key, string translation)
+        {
+            foreach (Locale locale in LocalizationSettings.AvailableLocales.Locales)
+            {
+                SetKeyTranslationForLocale(locale, key, translation);
+            }
+        }
+
+        /// <summary>
+        /// Replaces translations in all available locales for the ones in the dictionary. Does not replace the entire locale dictionary for the one provided.
+        /// </summary>
+        /// <param name="dictionary">string key translation pair that will replace their counterparts in all available locales</param>
+        public static void SetKeyTranslationsForAllLocales(Dictionary<string, string> dictionary)
+        {
+            foreach (Locale locale in LocalizationSettings.AvailableLocales.Locales)
+            {
+                SetKeyTranslationsForLocale(locale, dictionary);
             }
         }
 
@@ -244,12 +345,13 @@ namespace ItemLibrary
         public static Locale GetCreateLocale(LocaleIdentifier localeIdentifier)
         {
             ILocalesProvider localeProvider = LocalizationSettings.AvailableLocales;
-            Locale locale = localeProvider.GetLocale(localeIdentifier);
+            Locale? locale = localeProvider.GetLocale(localeIdentifier);
 
             if (!locale)
             {
                 locale = Locale.CreateLocale(localeIdentifier);
                 localeProvider.AddLocale(locale);
+                LocaleAdded?.Invoke(locale);
             }
 
             return locale;
@@ -265,5 +367,10 @@ namespace ItemLibrary
             LocaleIdentifier localeIdentifier = new LocaleIdentifier(cultureInfo);
             return GetCreateLocale(localeIdentifier);
         }
+
+        /// <summary>
+        /// Called when a new locale is added to the game's available locales list by an end user.
+        /// </summary>
+        public static event Action<Locale>? LocaleAdded;
     }
 }
